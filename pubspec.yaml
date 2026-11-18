@@ -1,0 +1,98 @@
+name: kosku
+description: "Kosku - offline-first personal money tracker: receipt scanning via Gemini, Firebase login + sync."
+publish_to: "none"
+version: 2.17.1+20
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.2
+
+  # Database lokal
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.4
+
+  # Online: Gemini API untuk scan
+  http: ^1.2.2
+
+  # Kamera & galeri untuk scan struk
+  image_picker: ^1.1.2
+
+  # Potong & putar foto sebelum dibaca Gemini (uCrop bawaan Android)
+  image_cropper: ^8.0.0
+
+  # Terima foto/teks dari app lain (share dari WhatsApp/galeri/dll)
+  receive_sharing_intent: ^1.8.1
+
+  # Ekspor laporan bulanan ke PDF + lembar bagikan Android
+  pdf: ^3.11.1
+  printing: ^5.13.4
+
+  # Firebase: login email/password + sinkronisasi Firestore (fase 2)
+  firebase_core: ^5.1.0
+  firebase_auth: ^7.0.1
+  cloud_firestore: ^7.1.0
+
+  # Deteksi koneksi internet (pemicu flush antrian sync).
+  # ^7.3.1 (bukan ^7.3.2): supaya resolve bersama flutter_local_notifications
+  # di semua rentang SDK pengguna.
+  connectivity_plus: ^7.3.1
+
+  # Input suara (speech-to-text)
+  speech_to_text: ^7.5.0
+
+  # Grafik laporan bulanan
+  fl_chart: ^1.3.1
+
+  # Pengingat Android (kiriman, utang jatuh tempo, catat harian).
+  # Catatan: pengingat terjadwal butuh core library desugaring di
+  # android/app/build.gradle - lihat android_patch/README.md.
+  flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.0
+
+  # Lembar bagikan Android buat file hasil ekspor (CSV buku kas)
+  share_plus: ^11.0.0
+
+  # Format Rupiah & tanggal Indonesia
+  # Catatan: sengaja "any" karena flutter_localizations mengunci versi intl
+  intl: any
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Generate ikon launcher dari assets/logo_icon.png (lihat README:
+  # jalankan "dart run flutter_launcher_icons" setelah flutter create .)
+  flutter_launcher_icons: ^0.14.4
+
+# Ikon launcher: logo kosku (dusty pink) untuk ikon Android biasa +
+# adaptive icon (cream background + logo di safe zone).
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logo_icon.png"
+  adaptive_icon_background: "#b56979"
+  adaptive_icon_foreground: "assets/logo_icon.png"
+  adaptive_icon_foreground_inset: 24
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+  assets:
+    # Logo kosku versi dusty pink: dipakai di splash tiap pembukaan
+    # aplikasi dan layar sambutan pertama.
+    - assets/logo.png
+
+dependency_overrides:
+  archive: ^4.0.10 # Or downgrade to 4.0.8 if 4.0.10 isn't available

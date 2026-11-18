@@ -1,0 +1,139 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ====== APP PERMISSIONS ====== -->
+
+    <!-- Internet: Firebase (login & sync) + Gemini API (scan) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Camera: receipt & transfer proof scanning (take photos directly) -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- Microphone: voice input "ngopi 15rb" (speech_to_text) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Gallery: pick a receipt photo from storage.
+         Android 12 and below use READ_EXTERNAL_STORAGE,
+         Android 13+ (API 33+) uses READ_MEDIA_IMAGES. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- image_picker: camera write (older Android) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+
+    <!-- Reminder notifications (Android 13+): transfers, debt due dates,
+         daily expense logging. Requested at runtime by the
+         flutter_local_notifications plugin the first time the app runs. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Exact alarms (Android 12+ "Alarms & reminders" special access) so
+         the 08.00 / 20.00 reminders fire on time instead of "sometime
+         within ~15 minutes". USE_EXACT_ALARM covers Android 13+
+         (auto-granted); SCHEDULE_EXACT_ALARM covers Android 12 and is
+         requested at runtime. Without these the app silently falls back
+         to inexact alarms. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+
+    <!-- Required for scheduled reminders to survive a phone restart:
+         without this, every schedule is wiped on each reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <application
+        android:label="kosku"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- ====== SHARE TARGET ======
+                 The app shows up in the WhatsApp/Gallery/etc share sheet:
+                 receipt photos go to Scan, text goes to quick input. -->
+
+            <!-- Receive a single photo from another app -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+
+            <!-- Receive text from another app -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+
+            <!-- Receive multiple photos at once (the first photo is processed) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="flutterEmbedding"
+                android:value="2"/>
+        </activity>
+
+        <!-- ====== SCHEDULED NOTIFICATIONS (flutter_local_notifications) ======
+             MUST BE PRESENT. The plugin does NOT declare its own receivers:
+             without ScheduledNotificationReceiver, an alarm is "successfully"
+             scheduled but NEVER displays (there is no broadcast receiver
+             for it) - this is the cause of "notifications never show
+             at all even though permission was granted". -->
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
+
+        <!-- After a reboot / app update, re-install every schedule. -->
+        <receiver android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- ====== CROP / ROTATE EDITOR (uCrop from image_cropper) ======
+             WITHOUT this declaration, the "Crop / rotate" button on the scan
+             screen fails silently (ActivityNotFoundException). -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+    </application>
+
+    <!-- Android 11+ (API 30+): speech_to_text must declare the speech
+         recognition service it will ask the system for. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+        <!-- Used by the Flutter engine for text-selection "Process text"
+             actions on Android 11+. -->
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

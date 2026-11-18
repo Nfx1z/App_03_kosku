@@ -1,0 +1,13 @@
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+  errors:
+    # Flutter 3.47+ memberi deprecate pada import package:flutter/material.dart
+    # (disarankan pindah ke material_ui). SDK yang dipakai pengguna masih
+    # 3.3x-3.4x yang belum menyediakan material_ui, jadi import material.dart
+    # dipertahankan supaya tetap compile di mesin pengguna. Info deprecasi
+    # dari SDK yang lebih baru sengaja diabaikan agar `flutter analyze`
+    # bersih di kedua rentang versi.
+    deprecated_member_use: ignore
+include: package:flutter_lints/flutter.yaml

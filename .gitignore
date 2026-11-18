@@ -1,0 +1,78 @@
+# ============================================================================
+# KosKu — .gitignore (Flutter + Firebase)
+# ============================================================================
+
+# --- Secrets & App Signing (NEVER COMMIT) ---
+.env
+.env.*
+!.env.example
+key.properties
+**/*.jks
+**/*.keystore
+*.pem
+*.p12
+service-account*.json
+serviceAccount*.json
+client-secret*.json
+
+# --- Firebase Configs (Uncomment these 3 lines if you haven't set up App Check) ---
+firebase.json
+android/app/google-services.json
+lib/firebase_options.dart
+
+# --- Firebase CLI Local Artifacts ---
+.firebase/
+firebase-debug.log
+firestore-debug.log
+pubsub-debug.log
+ui-debug.log
+firebase-export*/
+
+# --- Flutter / Dart / Pub ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+migrate_working_dir/
+
+# --- Android Build & Local Machine Files ---
+.gradle/
+local.properties
+captures/
+.cxx/
+/android/build/
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+.DS_Store
+Thumbs.db
+*.swp
+*.class
+*.log
+*.pyc
+
+# --- Release Binaries ---
+*.apk
+*.aab
+*.ipa
