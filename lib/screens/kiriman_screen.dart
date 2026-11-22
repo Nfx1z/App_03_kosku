@@ -78,7 +78,7 @@ class KirimanScreen extends StatelessWidget {
                 ),
               ),
             ),
-          const KartuFormKiriman(),
+          KartuFormKiriman(),
           judulSection(T.t('daftar_kiriman')),
           if (app.kirimanList.isEmpty)
             kartuKosong(T.t('kiriman_kosong'), ikon: Icons.send_rounded)

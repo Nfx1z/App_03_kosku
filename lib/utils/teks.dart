@@ -942,11 +942,11 @@ class T {
     'notif_judul': {'id': 'Pengingat', 'en': 'Reminders'},
     'notif_desc': {
       'id': 'Pengingat muncul di notifikasi HP: kiriman semestinya '
-          'datang, utang / piutang menjelang jatuh tempo, dan ingatan '
-          'catat pengeluaran.',
+          'datang, utang / piutang menjelang jatuh tempo, ingatan '
+          'catat pengeluaran, dan (kalau dinyalakan) ringkasan pagi.',
       'en': 'Reminders appear in your phone\u2019s notifications: '
           'expected transfers, debts / loans nearing their due date, '
-          'and a nudge to log expenses.'
+          'a nudge to log expenses, and (if enabled) a morning summary.'
     },
     'notif_harian': {
       'id': 'Pengingat catat pengeluaran tiap malam',
@@ -956,13 +956,49 @@ class T {
       'id': 'Sekali sehari biar buku kas selalu mutakhir',
       'en': 'Once a day to keep your ledger up to date'
     },
+    'notif_pagi': {
+      'id': 'Pengingat pagi harian',
+      'en': 'Daily morning reminder'
+    },
+    'notif_pagi_sub': {
+      'id': 'Tiap pagi: pegangan & jatah hari ini (default mati)',
+      'en': 'Every morning: cash on hand & today\'s allowance (off by default)'
+    },
+    'notif_pagi_title': {
+      'id': 'Selamat pagi!',
+      'en': 'Good morning!'
+    },
+    'notif_pagi_body': {
+      'id': 'Pegangan {s} • jatah hari ini {j}',
+      'en': 'Cash {s} • today\'s allowance {j}'
+    },
+    'notif_jadwal_ada': {
+      'id': '{n} pengingat terjadwal sekarang',
+      'en': '{n} reminders scheduled right now'
+    },
+    'notif_jadwal_kosong': {
+      'id': 'Belum ada jadwal pengingat - muncul otomatis saat ada kiriman '
+          'menunggu, utang menjelang jatuh tempo, atau target bertanggal',
+      'en': 'No reminders scheduled yet - they appear automatically when '
+          'there is a pending transfer, an upcoming debt, or a dated target'
+    },
+    'notif_baterai': {
+      'id': 'Pengingat tidak muncul? Keluarkan kosku dari optimasi baterai '
+          'dan izinkan autostart (Setelan HP > Baterai / Autostart).',
+      'en': 'Reminders not showing? Exclude kosku from battery optimization '
+          'and allow autostart (Phone settings > Battery / Autostart).'
+    },
     'notif_jam_pagi': {
       'id': 'Jam pengingat kiriman, utang & target',
       'en': 'Transfer, debt & target reminder time'
     },
     'notif_jam_pagi_sub': {
-      'id': 'Default 08.00 - pagi hari tanggal kiriman, H-1 / hari jatuh tempo, dan H-1 deadline target',
-      'en': 'Default 8:00 AM - transfer arrival day, day before / due day of debts, day before target deadlines'
+      'id': 'Default 08.00 - dipakai pengingat pagi harian & pengingat '
+          'tanggal: pagi hari kiriman, H-1 / hari jatuh tempo, dan '
+          'H-1 deadline target',
+      'en': 'Default 8:00 AM - used by the daily morning reminder and for '
+          'event days: transfer arrival day, day before / due day of '
+          'debts, day before target deadlines'
     },
     'notif_jam_malam': {
       'id': 'Jam pengingat catat pengeluaran',
@@ -1106,7 +1142,7 @@ class T {
     },
 
     // Tentang
-    'tentang_judul': {'id': 'Kosku v2.17.1', 'en': 'Kosku v2.17.1'},
+    'tentang_judul': {'id': 'Kosku v2.17.3', 'en': 'Kosku v2.17.3'},
     'tentang_desc': {
       'id': 'Pencatat uang pribadi offline-first.\n'
           'Fitur inti jalan tanpa internet; pindai struk butuh online.',

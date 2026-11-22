@@ -1,7 +1,7 @@
 # Dokumentasi Kosku
 
 **Pencatat uang pribadi offline-first untuk Android** — dibuat dengan Flutter + Dart.
-Versi aplikasi yang didokumentasikan: **2.17.1** (build 20).
+Versi aplikasi yang didokumentasikan: **2.17.3** (build 22).
 
 Dokumen ini adalah referensi lengkap kosku dalam Bahasa Indonesia: semua fitur, konsep dan cara hitung uangnya, aturan-aturan keamanan saldonya, pengingat notifikasinya, akun & sinkronisasi cloud-nya, sampai peta struktur file dan skema database-nya — semuanya dijelaskan per bagian.
 
@@ -198,10 +198,10 @@ Batas harian ≤ 0 → kartu "belum aktif" (atur batas dulu di Pengaturan).
 Rencana beli barang/jasa: **nama + budget + deadline opsional**.
 
 - **Saran cerdas** berdasarkan status (`StatusSaran`):
-  - *Siap beli* — saldo sudah cukup.
-  - *Aman* — berdeadline, butuh nabung ±{n}/hari dan itu masih dalam kemampuan (sisa jatah di atas rata-rata belanja 7 hari, minimal Rp 1.000).
-  - *Berat* — deadline terlalu mepet untuk kemampuanmu (tetap ditampilkan angka per hari yang dibutuhkan).
-  - *Perlu waktu* — tanpa deadline: perkiraan tanggal realistis bisa terbeli dengan kemampuan sekarang.
+    - *Siap beli* — saldo sudah cukup.
+    - *Aman* — berdeadline, butuh nabung ±{n}/hari dan itu masih dalam kemampuan (sisa jatah di atas rata-rata belanja 7 hari, minimal Rp 1.000).
+    - *Berat* — deadline terlalu mepet untuk kemampuanmu (tetap ditampilkan angka per hari yang dibutuhkan).
+    - *Perlu waktu* — tanpa deadline: perkiraan tanggal realistis bisa terbeli dengan kemampuan sekarang.
 - **Progress bar** warna mengikuti status; baris "Siap {a} dari {b}".
 - **Tandai tercapai** — dialog berisi switch "catat sekarang sebagai pengeluaran" (default nyala) + **imbas** beli (termasuk hitungan harga beli yang memakan jatah hari ini). Bila dicatat, melewati gerbang jaga saldo. Target yang sudah tercapai tampil "selesai" tanpa progress/saran, dan **tidak lagi** menghitung "kurang Rp X".
 - **Urutan**: yang masih berjalan duluan (deadline terdekat di atas, tanpa deadline menyusul), yang tercapai ke bawah.
@@ -211,8 +211,8 @@ Rencana beli barang/jasa: **nama + budget + deadline opsional**.
 Dua tab: **Ngutang** (aku berutang) dan **Ngutangin** (aku meminjamkan).
 
 - **Form per tab**: siapa, nominal, catatan opsional, switch "punya target bayar" + tanggal (default +14 hari).
-  - Catat **utang** → transaksi `utang_masuk`, saldo **nambah** (kamu dapat duit).
-  - Catat **ngutangin** → transaksi `piutang_keluar`, saldo **berkurang** — lewat gerbang jaga saldo, dengan **imbas live** di form.
+    - Catat **utang** → transaksi `utang_masuk`, saldo **nambah** (kamu dapat duit).
+    - Catat **ngutangin** → transaksi `piutang_keluar`, saldo **berkurang** — lewat gerbang jaga saldo, dengan **imbas live** di form.
 - **Lunasi ✓** — dialog konfirmasi dengan switch "catat pengeluaran/pemasukan sekarang" + **imbas** untuk bayar utang. Bayar utang = `utang_bayar` (saldo −, lewat gerbang jaga saldo); piutang dilunasi = `piutang_terima` (saldo +).
 - **Status tile**: Lunas / Belum lunas / "Bayar sebelum {tanggal}" / **"Lewat tempo {tanggal}"** (merah tebal).
 - **Urutan**: yang aktif duluan (jatuh tempo terdekat di atas, tanpa tempo menyusul), yang lunas ke bawah.
@@ -232,12 +232,12 @@ Satu menu (sejak v2.10 satu pintu, dulu dua kartu terpisah) membuka dialog denga
 - **Ringkasan bulan berjalan**: total masuk (pemasukan + utang masuk + piutang terima + uang masuk lain) dan total keluar (pengeluaran + bayar utang + piutang keluar + uang keluar lain).
 - **Dikelompokkan per tanggal** ("Hari ini", "Kemarin", atau tanggal lengkap), tarik-untuk-muat-ulang.
 - **Tap transaksi** → lembar ubah/hapus (`lembar_edit_transaksi.dart`) dengan aturan keamanan data:
-  - Jumlah & tanggal bisa diubah untuk semua jenis — saldo otomatis dihitung ulang.
-  - Nama/catatan hanya untuk transaksi polos (bukan yang terkait kiriman/utang).
-  - Kategori hanya untuk pengeluaran.
-  - **Koreksi (setelan saldo) tidak bisa diedit — hanya dihapus** (menghapusnya tetap aman, saldo dihitung ulang dari sisa transaksi).
-  - Mengubah tanggal menjaga jam asli transaksi. Rentang pickernya dibatasi (sejak v2.16): paling mundur 1 bulan atau tanggal asli (yang lebih tua dari dua-duanya), tidak bisa ke masa depan — supaya tanggal transaksi tidak "ngalor ngidul" menarik hitungan tabungan hemat ke belakang.
-  - **Tabungan otomatis kembali** — bila transaksi yang dihapus/diubah itu yang bikin lewat batas (dan kelebihannya ditutup tabungan), pemakaian tabungan hari itu dipangkas otomatis sesuai kelebihan yang tersisa; snackbar memberi tahu berapa yang dikembalikan. Sejak v2.16, bulan tertutup yang terkena hapus/ubah juga **dihitung ulang hematnya** (kunci riwayatnya dibuka dulu) — menghapus transaksi nyasar (mis. struk salah baca ke tahun lalu) benar-benar membersihkan jejaknya di tabungan.
+    - Jumlah & tanggal bisa diubah untuk semua jenis — saldo otomatis dihitung ulang.
+    - Nama/catatan hanya untuk transaksi polos (bukan yang terkait kiriman/utang).
+    - Kategori hanya untuk pengeluaran.
+    - **Koreksi (setelan saldo) tidak bisa diedit — hanya dihapus** (menghapusnya tetap aman, saldo dihitung ulang dari sisa transaksi).
+    - Mengubah tanggal menjaga jam asli transaksi. Rentang pickernya dibatasi (sejak v2.16): paling mundur 1 bulan atau tanggal asli (yang lebih tua dari dua-duanya), tidak bisa ke masa depan — supaya tanggal transaksi tidak "ngalor ngidul" menarik hitungan tabungan hemat ke belakang.
+    - **Tabungan otomatis kembali** — bila transaksi yang dihapus/diubah itu yang bikin lewat batas (dan kelebihannya ditutup tabungan), pemakaian tabungan hari itu dipangkas otomatis sesuai kelebihan yang tersisa; snackbar memberi tahu berapa yang dikembalikan. Sejak v2.16, bulan tertutup yang terkena hapus/ubah juga **dihitung ulang hematnya** (kunci riwayatnya dibuka dulu) — menghapus transaksi nyasar (mis. struk salah baca ke tahun lalu) benar-benar membersihkan jejaknya di tabungan.
 
 ### 4.10 Laporan bulanan
 
@@ -270,14 +270,14 @@ Yang dipahami parser offline: satuan `rb/ribu/k` (×1.000) dan `jt/juta` (×1.00
 Satu layar untuk semua pengaturan — kartu-kartunya atas ke bawah:
 
 1. **Akun & Sinkronisasi** (hanya muncul kalau Firebase aktif):
-   - Belum login → tombol **Masuk / Daftar** (ke `AuthScreen`: tab Masuk/Daftar, lupa sandi, boleh "pakai offline dulu").
-   - Sudah login → email + ikon terverifikasi/belum, tombol **Keluar akun** (konfirmasi), banner verifikasi email (kirim ulang / cek lagi) bila belum verifikasi.
-   - **Baris status sinkronisasi** — Sinkron terakhir {jam} / antrian {n} / offline / error / lokal saja.
-   - **Sinkron sekarang** — flush antrian manual.
-   - **Masa tenggang offline** (dropdown 3/7/14/30 hari) — berapa lama boleh offline sebelum aplikasi terkunci.
-   - **Auto-wipe** (switch, aktifnya perlu konfirmasi bahaya) — bila terkunci, data lokal dihapus (cloud tetap aman).
+    - Belum login → tombol **Masuk / Daftar** (ke `AuthScreen`: tab Masuk/Daftar, lupa sandi, boleh "pakai offline dulu").
+    - Sudah login → email + ikon terverifikasi/belum, tombol **Keluar akun** (konfirmasi), banner verifikasi email (kirim ulang / cek lagi) bila belum verifikasi.
+    - **Baris status sinkronisasi** — Sinkron terakhir {jam} / antrian {n} / offline / error / lokal saja.
+    - **Sinkron sekarang** — flush antrian manual.
+    - **Masa tenggang offline** (dropdown 3/7/14/30 hari) — berapa lama boleh offline sebelum aplikasi terkunci.
+    - **Auto-wipe** (switch, aktifnya perlu konfirmasi bahaya) — bila terkunci, data lokal dihapus (cloud tetap aman).
 2. **Bahasa** — chip Indonesia / English, langsung berubah tanpa restart, pilihan ikut tersinkron antar perangkat.
-3. **Pengingat** — switch pengingat harian; **jam pagi & jam malam bisa diatur sendiri** lewat time picker (default 08.00 & 20.00; ganti jam = seluruh jadwal dipasang ulang otomatis); tombol **Kirim notifikasi uji** (satu langsung + satu terjadwal 1 menit lagi).
+3. **Pengingat** — switch pengingat harian malam; switch **pengingat pagi harian** (sejak v2.17.3, ringkasan pegangan & jatah, default mati); **jam pagi & jam malam bisa diatur sendiri** lewat time picker (default 08.00 & 20.00; ganti jam = seluruh jadwal dipasang ulang otomatis); baris diagnostik jumlah jadwal aktif; tombol **Kirim notifikasi uji** (satu langsung + satu terjadwal 1 menit lagi).
 4. **Uang** — batas harian manual (+ **pratinjau proyeksi live** saat mengetik: cukup sampai kapan / kurang berapa hari / saran batas), **ekspor CSV buku kas**, **atur saldo pegangan** (dialog nominal → transaksi koreksi).
 5. **Pindai** — hanya muncul bila build **tanpa** kunci Gemini: penjelasan kenapa fitur scan nonaktif.
 6. **Data** — tombol merah **Hapus semua data** (konfirmasi bahaya; bila login, **seluruh dokumen di cloud ikut dihapus betulan** — koleksi disapu kosong termasuk sisa-sisa lama; kalau sedang offline, pembersihan diulang otomatis begitu online dan snackbar jujur memberi tahu).
@@ -375,17 +375,20 @@ Semua lewat `flutter_local_notifications`, satu channel: id `'kosku'`, importanc
 | Pengingat | Kapan muncul | Jam | ID | Catatan |
 | --- | --- | --- | --- | --- |
 | **"Sudah catat pengeluaran hari ini?"** | Setiap hari, berulang di jam yang sama | jam malam (default **20.00**, bisa diatur) | 1 | On/off lewat switch "Pengingat harian" |
+| **Ringkasan pagi harian** (sejak v2.17.3) | Setiap hari, berulang di jam yang sama | jam pagi (default **08.00**, bisa diatur) | 4 | On/off lewat switch "Pengingat pagi harian" (default **mati**); isi: pegangan & jatah hari ini. Dulu slot pagi hanya dipakai pengingat tanggal — tanpa event, pagi hening total dan user menyangka pengingatnya rusak |
 | **Kiriman semestinya datang** | Pagi di tanggal kiriman berstatus *menunggu* | jam pagi (default **08.00**, bisa diatur) | 100 + id kiriman | Judul memuat nominal; dijadwalkan maks. 30 hari ke depan |
 | **Utang/piutang H-1** | Pagi sehari sebelum jatuh tempo | jam pagi | 100.000 + id utang | "Besok jatuh tempo: {pihak}" |
 | **Utang/piutang hari-H** | Pagi di hari jatuh tempo sendiri | jam pagi | 150.000 + id utang | "Hari ini jatuh tempo: {pihak}" |
 | **Target beli H-1** | Pagi sehari sebelum deadline | jam pagi | 200.000 + id target | Isi "Kurang Rp X" (dihitung dari saldo saat penjadwalan) atau "Uangmu sudah cukup" |
 | **Uji notifikasi** | Manual dari Pengaturan: satu langsung + satu 1 menit lagi | — | 2 dan 3 | Menguji izin + channel + jalur alarm terjadwal sekaligus |
 
-Jam pagi dipakai untuk semua event bertanggal; jam malam khusus pengingat malam harian. **Kedua jam bisa diubah sendiri** dari Pengaturan (time picker) — mengubah jam memasang ulang seluruh jadwal otomatis. Semua waktu mengikuti **zona waktu HP** (bukan zona tetap Indonesia), jadi aman saat pindah waktu/tempat.
+Jam pagi dipakai untuk pengingat pagi harian DAN semua event bertanggal; jam malam khusus pengingat malam harian. **Kedua jam bisa diubah sendiri** dari Pengaturan (time picker) — mengubah jam memasang ulang seluruh jadwal otomatis. Semua waktu mengikuti **zona waktu HP** (bukan zona tetap Indonesia), jadi aman saat pindah waktu/tempat.
+
+Kartu Pengingat di Pengaturan juga menampilkan **diagnostik**: berapa jadwal pengingat aktif saat ini (malam + pagi + semua pengingat tanggal). Kalau **0**, memang belum ada yang harus diingatkan — pengingat tanggal baru muncul otomatis saat ada kiriman menunggu, utang menjelang jatuh tempo, atau target bertanggal. Di bawahnya ada catatan baterai: kalau pengingat tetap tidak muncul padahal jadwal ada, keluarkan kosku dari **optimasi baterai** dan izinkan **autostart** (Setelan HP > Baterai / Autostart) — beberapa HP (Xiaomi/OPPO/Vivo) membatasi alarm aplikasi yang tidak di-whitelist.
 
 ### 7.2 Cara kerja penjadwalan
 
-- `NotifikasiService.sinkronJadwal(...)` dipanggil di akhir setiap `muatSemua()` (yaitu setelah tiap aksi/ubah data) dan saat jam/on-off diubah. **Idempoten lewat tanda tangan**: kalau tidak ada yang berubah (harian, bahasa, jam, saldo, daftar kiriman/utang/target), tidak melakukan apa pun.
+- `NotifikasiService.sinkronJadwal(...)` dipanggil di akhir setiap `muatSemua()` (yaitu setelah tiap aksi/ubah data) dan saat jam/on-off diubah. **Idempoten lewat tanda tangan**: kalau tidak ada yang berubah (harian, pagi, bahasa, jam, saldo, jatah, daftar kiriman/utang/target), tidak melakukan apa pun.
 - Event mendadak (dicatat hari ini, setelah jam pagi lewat) tetap diingatkan: slot dimajukan ke **sekarang + 5 menit** (asal sebelum jam malam).
 - Slot yang tidak dipakai dibatalkan (penyapuan 500 slot per rentang ID di sesi pertama; setelah itu hanya yang pernah dipasang sendiri).
 
@@ -801,6 +804,8 @@ Ringkasan perubahan penting (detail lengkap di `README.md`):
 
 | Versi | Perubahan utama |
 | --- | --- |
+| **2.17.3** | **Pengingat pagi harian + locale ikut bahasa app**: (1) slot jam pagi sebelumnya HANYA dipakai pengingat tanggal (kiriman/utang/target) — tanpa event, pagi hening total sehingga user menyangka pengingatnya rusak; kini ada switch "Pengingat pagi harian" (ringkasan pegangan & jatah hari ini, default mati) di jam pagi yang sama. Kartu Pengingat kini menampilkan jumlah jadwal aktif (diagnostik "kenapa tidak ada notif" — kalau 0, memang belum ada yang harus diingatkan) plus catatan optimasi baterai/autostart untuk HP OEM. (2) `MaterialApp.locale` kini mengikuti `T.bahasa` — date/time picker bawaan (tombol OK/Batal, nama bulan) ikut bahasa app, bukan bahasa HP. |
+| **2.17.2** | **Ganti bahasa kini benar-benar menyegarkan kartu form**: kartu input cepat di Home (label Nama/Harga/Kategori, hint "esteh, belanja pokok..."), kartu selamat datang, form kiriman, dan form target sebelumnya dibikin `const` sehingga tidak dibangun ulang saat bahasa diganti — labelnya beku di bahasa lama sampai kartu disentuh. Penyebab: kartu-kartu itu hanya `context.read` (bukan `watch`), jadi satu-satunya cara ikut ganti bahasa adalah parent membangun instance baru; `const` membuat Flutter melewati rebuild karena instance-nya identik. | 
 | **2.17.1** | **Cloud benar-benar bersih saat menghapus**: dokumen Firestore untuk transaksi/kiriman/target/utang yang dihapus kini **di-DELETE betulan** (dulu hanya ditandai `dihapus: 1` — data "sudah dihapus" tetap menumpuk selamanya di console dan isinya masih terbaca). "Hapus semua data" menyapu **seluruh koleksi cloud** termasuk sisa lama yang tidak punya baris lokal lagi, dengan **retry otomatis** bila dilakukan offline (flag `reset_cloud_pending`) dan snackbar jujur kalau pembersihan cloud ditunda. Penyapu kecil membersihkan dokumen tombstone peninggalan versi lama tiap sync menyala; event `removed` kini menghapus baris lokal di perangkat lain. |
 | **2.17** | **Input suara jadi tahan-untuk-bicara** ala voice note WhatsApp: tahan mic = merekam dengan transkrip live, timer, dan bar level suara; **lepas jari = otomatis diparse** ke form tanpa tombol apa pun; geser kiri / sentuhan terlalu cepat / interupsi sistem = rekaman dibuang dan teks kolom dipulihkan; maks 30 detik per tahanan. |
 | **2.16** | **Pelindung tanggal & jam hasil scan**: tanggal struk/bukti dibaca dengan format Indonesia dd/MM (mm/dd hanya kalau ketara seperti "12/28"), tahun yang tidak tercetak dianggap tahun berjalan, dan tanggal di luar jendela wajar (tahun lalu / lebih dari sebulan / masa depan) DITOLAK — pencatatan otomatis pakai hari ini + jam scan dengan info kenapa. **Jam dokumen ikut terbaca** (dulu selalu 00:00): jam struk dipakai kalau ada, kalau tidak jam saat scan. Pelindung berlapis juga di tempat lain: picker tanggal scan & ubah transaksi dibatasi (maks mundur 1 bulan, tidak bisa masa depan, tidak bisa lebih tua dari tanggal asli), input bebas maks mundur 7 hari, dan `tambahPengeluaran`/`tambahPemasukan` memagari `dibuatPada` di jendela 1 bulan — satu struk salah baca (kasus nyata: belanja tercatat 18 November 2023) tidak lagi bisa menarik "mulai pantau" tabungan hemat bertahun ke belakang sehingga tabungan tiba-tiba berisi hemat palsu tiap tanggal 1-16. Menghapus/mengubah transaksi juga membuka kunci hemat bulan tertutup yang terkena untuk dihitung ulang, jadi jejak data nyasar di tabungan ikut bersih. |

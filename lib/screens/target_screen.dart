@@ -24,7 +24,7 @@ class TargetScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          const KartuFormTarget(),
+          KartuFormTarget(),
           judulSection(T.t('target_kamu')),
           if (app.targetList.isEmpty)
             kartuKosong(T.t('target_kosong'), ikon: Icons.flag_rounded)

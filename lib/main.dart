@@ -14,6 +14,7 @@ import 'screens/layar_sambutan.dart';
 import 'screens/layar_splash.dart';
 import 'services/bagikan_service.dart';
 import 'services/notifikasi_service.dart';
+import 'utils/teks.dart';
 import 'utils/tema.dart';
 
 Future<void> main() async {
@@ -66,29 +67,36 @@ class KoskuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'kosku',
-      debugShowCheckedModeBanner: false,
-      theme: buildTemaKosku(),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('id', 'ID'),
-        Locale('en', 'US'),
-      ],
-      home: Consumer<AppState>(
-        builder: (context, app, _) {
-          // Splash brand tampil SETIAP sesi pembukaan aplikasi (gaya
-          // Gojek), sekaligus berfungsi sebagai layar memuat data.
-          if (!app.siap || !app.splashSelesai) return const LayarSplash();
-          if (app.terkunci) return const LayarKunci();
-          // Sekali di awal: sambutan brand dulu, baru isi aplikasi.
-          if (!app.sudahSambutan) return const LayarSambutan();
-          return const HomeScreen();
-        },
+    // Consumer di luar MaterialApp supaya ganti bahasa MEMBUAT ULANG
+    // MaterialApp: locale di bawah ikut T.bahasa, jadi widget bawaan
+    // (date/time picker: tombol OK/Batal, nama bulan) ikut bahasa app
+    // - bukan bahasa HP - tanpa restart.
+    return Consumer<AppState>(
+      builder: (context, app, _) => MaterialApp(
+        title: 'kosku',
+        debugShowCheckedModeBanner: false,
+        theme: buildTemaKosku(),
+        locale: T.bahasa == 'en' ? const Locale('en', 'US') : const Locale('id', 'ID'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('id', 'ID'),
+          Locale('en', 'US'),
+        ],
+        home: Builder(
+          builder: (context) {
+            // Splash brand tampil SETIAP sesi pembukaan aplikasi (gaya
+            // Gojek), sekaligus berfungsi sebagai layar memuat data.
+            if (!app.siap || !app.splashSelesai) return const LayarSplash();
+            if (app.terkunci) return const LayarKunci();
+            // Sekali di awal: sambutan brand dulu, baru isi aplikasi.
+            if (!app.sudahSambutan) return const LayarSambutan();
+            return const HomeScreen();
+          },
+        ),
       ),
     );
   }

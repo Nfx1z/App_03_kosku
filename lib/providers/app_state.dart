@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -146,6 +147,18 @@ class AppState extends ChangeNotifier {
   /// Preferensi perangkat - tidak ikut sync.
   bool notifHarian = true;
 
+  /// Pengingat PAGI harian "pegangan & jatah hari ini" (default: mati).
+  /// Dulu slot pagi hanya dipakai pengingat tanggal kiriman/utang/target
+  /// - tanpa event, pagi hening total dan user menyangka pengingatnya
+  /// rusak. Preferensi perangkat - tidak ikut sync.
+  bool notifPagiAktif = false;
+
+  /// Diagnostik: berapa jadwal pengingat yang aktif sekarang (malam +
+  /// pagi + kiriman/utang/target). Ditampilkan di Pengaturan supaya
+  /// jelas "kenapa tidak ada notif" - kalau 0, memang belum ada yang
+  /// harus diingatkan.
+  int jadwalNotifAktif = 0;
+
   /// Jam pengingat ("HH:MM", ikut jam HP): pagi = kiriman / utang /
   /// target (default 08.00), malam = catat pengeluaran (default 20.00).
   /// Bisa diubah user di Pengaturan (time picker).
@@ -218,6 +231,7 @@ class AppState extends ChangeNotifier {
 
     autoWipe = (await _db.getNilai('auto_wipe')) == '1';
     notifHarian = (await _db.getNilai('notif_harian')) != '0';
+    notifPagiAktif = (await _db.getNilai('notif_pagi_aktif')) == '1';
     jamNotifPagi = await _db.getNilai('jam_notif_pagi') ?? '08:00';
     jamNotifMalam = await _db.getNilai('jam_notif_malam') ?? '20:00';
 
@@ -284,18 +298,21 @@ class AppState extends ChangeNotifier {
     siap = true;
     notifyListeners();
 
-    // Pengingat sistem (kiriman / utang / catat harian) dijadwalkan
-    // ulang kalau datanya berubah - murah, ada penjaga tanda tangan di
-    // dalam servicenya.
-    NotifikasiService.instance.sinkronJadwal(
+    // Pengingat sistem (kiriman / utang / pagi / catat harian)
+    // dijadwalkan ulang kalau datanya berubah - murah, ada penjaga
+    // tanda tangan di dalam servicenya. Jumlah jadwal aktif ikut
+    // disimpan buat diagnostik di Pengaturan.
+    unawaited(NotifikasiService.instance.sinkronJadwal(
       harianAktif: notifHarian,
+      pagiAktif: notifPagiAktif,
+      jatahHarian: batasAktif,
       kiriman: kirimanList,
       utang: utangList,
       target: targetList,
       saldoPegangan: saldoPegangan,
       jamPagi: jamNotifPagi,
       jamMalam: jamNotifMalam,
-    );
+    ).then((_) => _segarkanJumlahJadwal()));
   }
 
   // ================= AKUN & KUNCI OFFLINE =================
@@ -473,7 +490,30 @@ class AppState extends ChangeNotifier {
     notifHarian = nilai;
     await _db.setNilai('notif_harian', nilai ? '1' : '0');
     await NotifikasiService.instance.aturHarian(nilai, jam: jamNotifMalam);
+    _segarkanJumlahJadwal();
     notifyListeners();
+  }
+
+  /// Nyalakan / matikan pengingat PAGI harian (ringkasan pegangan &
+  /// jatah hari ini).
+  Future<void> simpanNotifPagi(bool nilai) async {
+    notifPagiAktif = nilai;
+    await _db.setNilai('notif_pagi_aktif', nilai ? '1' : '0');
+    await NotifikasiService.instance.aturPagi(
+      nilai,
+      jam: jamNotifPagi,
+      saldo: saldoPegangan,
+      jatah: batasAktif,
+    );
+    _segarkanJumlahJadwal();
+    notifyListeners();
+  }
+
+  /// Salin hitungan jadwal aktif dari service ke state (buat kartu
+  /// Pengingat di Pengaturan). Tidak memicu rebuild sendiri - pemanggil
+  /// yang memutuskan.
+  void _segarkanJumlahJadwal() {
+    jadwalNotifAktif = NotifikasiService.instance.jumlahJadwalAktif;
   }
 
   /// Ubah jam pengingat (pagi & malam, format "HH:MM") lalu jadwalkan
@@ -486,6 +526,8 @@ class AppState extends ChangeNotifier {
     await _db.setNilai('jam_notif_malam', malam);
     await NotifikasiService.instance.sinkronJadwal(
       harianAktif: notifHarian,
+      pagiAktif: notifPagiAktif,
+      jatahHarian: batasAktif,
       kiriman: kirimanList,
       utang: utangList,
       target: targetList,
@@ -493,6 +535,7 @@ class AppState extends ChangeNotifier {
       jamPagi: pagi,
       jamMalam: malam,
     );
+    _segarkanJumlahJadwal();
     notifyListeners();
   }
 

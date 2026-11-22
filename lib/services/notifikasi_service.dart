@@ -44,6 +44,23 @@ class NotifikasiService {
   bool _siap = false;
   bool _menyiapkan = false;
 
+  /// Pengingat harian malam & pagi benar-benar terpasang? Dipakai buat
+  /// [jumlahJadwalAktif] (diagnostik di Pengaturan).
+  bool _harianPasang = false;
+  bool _pagiPasang = false;
+
+  /// Berapa jadwal pengingat yang aktif SEKARANG (malam + pagi + semua
+  /// pengingat tanggal kiriman/utang/target). Dipakai Pengaturan untuk
+  /// menampilkan diagnostik "kenapa tidak ada notif pagi" - kalau 0,
+  /// memang belum ada yang harus diingatkan.
+  int get jumlahJadwalAktif =>
+      (_harianPasang ? 1 : 0) +
+      (_pagiPasang ? 1 : 0) +
+      (_kirimanTerjadwal?.length ?? 0) +
+      (_utangTerjadwal?.length ?? 0) +
+      (_utangHariIniTerjadwal?.length ?? 0) +
+      (_targetTerjadwal?.length ?? 0);
+
   /// Boleh pakai alarm EXACT (Android 12+ "Alarms & reminders")?
   /// Dicek ulang tiap siapkan; kalau tidak, jatuh ke alarm inexact
   /// (masih muncul, hanya bisa telat ±15 menit).
@@ -61,10 +78,11 @@ class NotifikasiService {
   Set<int>? _utangHariIniTerjadwal;
   Set<int>? _targetTerjadwal;
 
-  // ID notifikasi stabil: 1 = harian, 2-3 = uji,
+  // ID notifikasi stabil: 1 = malam, 4 = pagi harian, 2-3 = uji,
   // 100+id kiriman, 100000+id utang (H-1), 150000+id utang (hari-H),
   // 200000+id target.
   static const _idHarian = 1;
+  static const _idPagi = 4;
   static const _idUji = 2;
   static const _idKirimanBase = 100;
   static const _idUtangBase = 100000;
@@ -170,14 +188,16 @@ class NotifikasiService {
     } catch (_) {}
   }
 
-  Future<void> _tampil(
+  /// Balik true kalau notifikasi/langsung-tampil/jadwal benar-benar
+  /// dipasang (dipakai diagnostik jumlah jadwal aktif).
+  Future<bool> _tampil(
     int id,
     String judul,
     String isi, {
     DateTime? waktu,
     bool ulangHarian = false,
   }) async {
-    if (!_siap) return;
+    if (!_siap) return false;
     const detail = NotificationDetails(
       android: AndroidNotificationDetails(
         'kosku',
@@ -190,11 +210,11 @@ class NotifikasiService {
     try {
       if (waktu == null) {
         await _plugin.show(id, judul, isi, detail);
-        return;
+        return true;
       }
       final jadwal = tz.TZDateTime.from(waktu, tz.local);
       // Lewati waktu yang sudah lewat (device restart / data lama).
-      if (jadwal.isBefore(tz.TZDateTime.now(tz.local))) return;
+      if (jadwal.isBefore(tz.TZDateTime.now(tz.local))) return false;
       await _plugin.zonedSchedule(
         id,
         judul,
@@ -207,8 +227,10 @@ class NotifikasiService {
         // Ulang tiap hari di jam yang sama (khusus pengingat harian).
         matchDateTimeComponents: ulangHarian ? DateTimeComponents.time : null,
       );
+      return true;
     } catch (_) {
       // Jadwal gagal (mis. izin SCHEDULE_EXACT ditolak) → diam saja.
+      return false;
     }
   }
 
@@ -250,10 +272,14 @@ class NotifikasiService {
   /// hari ini sudah lewat, mulai besok.
   Future<void> aturHarian(bool aktif, {String jam = '20:00'}) async {
     await siapkan();
-    if (!_siap) return;
+    if (!_siap) {
+      _harianPasang = false;
+      return;
+    }
     try {
       await _plugin.cancel(_idHarian);
     } catch (_) {}
+    _harianPasang = false;
     if (!aktif) return;
 
     final (j, m) = _parseJam(jam, 20, 0);
@@ -262,10 +288,49 @@ class NotifikasiService {
     if (!slot.isAfter(kini)) {
       slot = slot.add(const Duration(days: 1));
     }
-    await _tampil(
+    _harianPasang = await _tampil(
       _idHarian,
       T.t('notif_catat_title'),
       T.t('notif_catat_body'),
+      waktu: slot,
+      ulangHarian: true,
+    );
+  }
+
+  // ================= PENGINGAT PAGI HARIAN =================
+
+  /// Nyalakan / matikan pengingat PAGI harian (default 08.00): ringkasan
+  /// singkat "pegangan & jatah hari ini". Ini pengingat HARIAN - dulu
+  /// slot pagi hanya dipakai pengingat TANGGAL (kiriman/utang/target),
+  /// jadi kalau tidak ada event, pagi hening total dan user menyangka
+  /// pengingatnya rusak. Kalau slot hari ini sudah lewat, mulai besok.
+  Future<void> aturPagi(
+    bool aktif, {
+    String jam = '08:00',
+    required int saldo,
+    required int jatah,
+  }) async {
+    await siapkan();
+    if (!_siap) {
+      _pagiPasang = false;
+      return;
+    }
+    try {
+      await _plugin.cancel(_idPagi);
+    } catch (_) {}
+    _pagiPasang = false;
+    if (!aktif) return;
+
+    final (j, m) = _parseJam(jam, 8, 0);
+    final kini = DateTime.now();
+    var slot = DateTime(kini.year, kini.month, kini.day, j, m);
+    if (!slot.isAfter(kini)) {
+      slot = slot.add(const Duration(days: 1));
+    }
+    _pagiPasang = await _tampil(
+      _idPagi,
+      T.t('notif_pagi_title'),
+      T.f('notif_pagi_body', {'s': rp(saldo), 'j': rp(jatah)}),
       waktu: slot,
       ulangHarian: true,
     );
@@ -302,12 +367,16 @@ class NotifikasiService {
   /// Sinkronkan seluruh jadwal dengan data terkini. Idempotent: kalau
   /// tanda tangan (isi data + setting) tidak berubah, tidak melakukan
   /// apa pun. Dipanggil dari muatSemua(). [jamPagi] = jam pengingat
-  /// kiriman/utang/target ("HH:MM", default 08.00), [jamMalam] = jam
-  /// pengingat catat pengeluaran (default 20.00) - keduanya bisa
-  /// diubah user di Pengaturan dan ikut tanda tangan supaya ganti jam
-  /// = jadwal ulang otomatis.
+  /// kiriman/utang/target DAN pengingat pagi harian (default 08.00),
+  /// [jamMalam] = jam pengingat catat pengeluaran (default 20.00) -
+  /// keduanya bisa diubah user di Pengaturan dan ikut tanda tangan
+  /// supaya ganti jam = jadwal ulang otomatis. [pagiAktif] = pengingat
+  /// pagi harian nyala, [jatahHarian] = jatah hari ini (muncul di isi
+  /// notifikasi pagi).
   Future<void> sinkronJadwal({
     required bool harianAktif,
+    required bool pagiAktif,
+    required int jatahHarian,
     required List<Kiriman> kiriman,
     required List<Utang> utang,
     required List<TargetBeli> target,
@@ -349,6 +418,10 @@ class NotifikasiService {
       // seluruh jadwal di jam yang baru.
       'pagi:$jamPagi',
       'malam:$jamMalam',
+      // Pengingat pagi harian: on/off + isi notifikasinya (pegangan &
+      // jatah) ikut berubah → dua-duanya masuk tanda tangan.
+      'pagi_aktif:$pagiAktif',
+      'jatah:$jatahHarian',
       // Saldo ikut: isi "kurang Rp X" pengingat target berganti tiap
       // saldo berubah. Mode exact ikut supaya jadwal lama dipasang
       // ulang sebagai alarm exact begitu izinnya diberikan.
@@ -368,6 +441,15 @@ class NotifikasiService {
 
     // Pengingat harian (malam, jam bisa diatur).
     await aturHarian(harianAktif, jam: jamMalam);
+
+    // Pengingat pagi harian (ringkasan pegangan & jatah, jam bisa
+    // diatur, default mati).
+    await aturPagi(
+      pagiAktif,
+      jam: jamPagi,
+      saldo: saldoPegangan,
+      jatah: jatahHarian,
+    );
 
     final batasJadwal = DateTime.now().add(const Duration(days: 30));
 

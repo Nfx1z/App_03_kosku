@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const KartuSaldo(),
           const KartuPerhatian(),
           if (app.sudahSetup) const KartuBudget(),
-          if (app.sudahSetup) const KartuInputCepat(),
+          if (app.sudahSetup)  KartuInputCepat(),
           judulSection(T.t('bagian_hari_ini')),
           if (app.transaksiHariIni.isEmpty)
             kartuKosong(T.t('home_kosong'),

@@ -1,7 +1,7 @@
 name: kosku
 description: "Kosku - offline-first personal money tracker: receipt scanning via Gemini, Firebase login + sync."
 publish_to: "none"
-version: 2.17.1+20
+version: 2.17.3+22
 
 environment:
   sdk: ">=3.6.0 <4.0.0"

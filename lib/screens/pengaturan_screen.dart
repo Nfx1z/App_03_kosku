@@ -148,6 +148,17 @@ class _PengaturanScreenState extends State<PengaturanScreen> {
     );
   }
 
+  Future<void> _aktifkanNotifPagi(bool nilai) async {
+    final app = context.read<AppState>();
+    await app.simpanNotifPagi(nilai);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(T.t(nilai ? 'notif_aktif' : 'notif_mati')),
+      ),
+    );
+  }
+
   /// Ubah jam pengingat (pagi & malam) lewat time picker, lalu
   /// jadwalkan ulang semua pengingat sesuai jam baru.
   Future<void> _simpanJamNotif({required String pagi, required String malam}) async {
@@ -444,6 +455,20 @@ class _PengaturanScreenState extends State<PengaturanScreen> {
                     subtitle: Text(T.t('notif_harian_sub'),
                         style: const TextStyle(fontSize: 12)),
                   ),
+                  // Pengingat pagi harian (default mati): ringkasan
+                  // pegangan & jatah hari ini. Dulu slot pagi hanya buat
+                  // pengingat tanggal kiriman/utang/target - kalau tidak
+                  // ada event, pagi hening total dan user menyangka
+                  // pengingatnya rusak.
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: app.notifPagiAktif,
+                    onChanged: _aktifkanNotifPagi,
+                    title: Text(T.t('notif_pagi'),
+                        style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(T.t('notif_pagi_sub'),
+                        style: const TextStyle(fontSize: 12)),
+                  ),
                   const SizedBox(height: 4),
                   // Jam pengingat bisa diubah sendiri (default 08.00 pagi
                   // & 20.00 malam) - dulu hardcode sekarang time picker.
@@ -482,6 +507,31 @@ class _PengaturanScreenState extends State<PengaturanScreen> {
                     style: TextStyle(
                         fontSize: 11,
                         color: cs.onSurface.withValues(alpha: 0.65)),
+                  ),
+                  const SizedBox(height: 6),
+                  // Diagnostik: berapa jadwal pengingat aktif sekarang.
+                  // Menjawab "kenapa tidak ada notif pagi" - kalau 0,
+                  // memang belum ada yang harus diingatkan (tidak ada
+                  // kiriman menunggu / utang jatuh tempo / target
+                  // bertanggal, dan pengingat harian mati).
+                  Text(
+                    app.jadwalNotifAktif > 0
+                        ? T.f('notif_jadwal_ada',
+                            {'n': '${app.jadwalNotifAktif}'})
+                        : T.t('notif_jadwal_kosong'),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: app.jadwalNotifAktif > 0
+                            ? cs.primary
+                            : cs.onSurface.withValues(alpha: 0.55)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    T.t('notif_baterai'),
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: cs.onSurface.withValues(alpha: 0.55)),
                   ),
                 ],
               ),
